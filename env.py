@@ -4,7 +4,7 @@ Adapted & Updated from aquacrop-gym
 
 # from aquacrop.classes import *
 from aquacrop.core import *
-from aquacrop import InitialWaterContent as InitWCClass 
+from aquacrop import InitialWaterContent as InitWCClass, Crop as CropClass, Soil as SoilClass 
 
 import gym
 from gym import spaces
@@ -103,7 +103,7 @@ class CropEnv(gym.Env):
 
         crop = config['crop']        
         if isinstance(crop,str):
-            self.crop = CropClass(crop,PlantingDate=config['planting_date'])
+            self.crop = CropClass(crop,planting_date=config['planting_date'])
         else:
             assert isinstance(crop,CropClass), "crop needs to be 'str' or 'CropClass'"
             self.crop=crop
