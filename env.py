@@ -3,8 +3,9 @@ Adapted & Updated from aquacrop-gym
 '''
 
 # from aquacrop.classes import *
-from aquacrop.core import *
-from aquacrop import InitialWaterContent as InitWCClass, Crop as CropClass, Soil as SoilClass, AquaCropModel, IrrigationManagement as IrrMngtClass
+# from aquacrop.core import *
+from aquacrop import InitialWaterContent as InitWCClass, Crop as CropClass, Soil as SoilClass, AquaCropModel 
+from aquacrop import IrrigationManagement as IrrMngtClass
 
 import gym
 from gym import spaces
@@ -187,62 +188,67 @@ class CropEnv(gym.Env):
 
         self.model = AquaCropModel(f'{self.simcalyear}/{month}/{day}',f'{self.simcalyear}/12/31',
                                 self.wdf,self.soil,self.crop,
-                                IrrMngt=IrrMngtClass(IrrMethod=5,MaxIrrSeason=self.chosen_max_irr_season),
-                                InitWC=self.init_wc,CO2conc=self.CO2conc)
-        self.model.initialize()
+                                irrigation_management=IrrMngtClass(irrigation_method=5,MaxIrrSeason=self.chosen_max_irr_season),\
+                                # co2_concentration=self.CO2conc,\
+                                initial_water_content=self.init_wc
+                                )
+        self.model._initialize()
 
         # remove rainfall from weather if requested
 
         if not self.include_rain:
-            self.model.weather[:,2]=0
+            self.model.weather_df[:,2]=0
 
         # shift the start day of simulation by specified amound
         # default 1
 
         if self.dayshift:
             dayshift=np.random.randint(1,self.dayshift+1)
-            self.model.step(dayshift)
+            # self.model.step(dayshift)
+            self.model.run_model(dayshift)
         
         # store irrigation events
         self.irr_sched=[]
 
-        return self.get_obs(self.model.InitCond)
+        return self.get_obs(self.model._init_cond)
  
-    def get_obs(self,InitCond):
+    def get_obs(self,_init_cond):
         """
-        package variables from InitCond into a numpy array
+        package variables from _init_cond into a numpy array
         and return as observation
         """
 
         # calculate relative depletion
-        if InitCond.TAW>0:
-            dep = InitCond.Depletion/InitCond.TAW
+        # if _init_cond.taw>0:
+        #     dep = _init_cond.Depletion/_init_cond.taw
+        if _init_cond.taw>0:
+            dep = _init_cond.depletion/_init_cond.taw
         else:
             dep=0
 
         # calculate mean daily precipitation and ETo from last 7 days
-        start = max(0,self.model.ClockStruct.TimeStepCounter -7)
-        end = self.model.ClockStruct.TimeStepCounter
-        forecast1 = self.model.weather[start:end,2:4].mean(axis=0).flatten()
+        start = max(0,self.model._clock_struct.time_step_counter -7)
+        end = self.model._clock_struct.time_step_counter
+        forecast1 = self.model.weather_df.to_numpy()[start:end,2:4].mean(axis=0).flatten()
 
         # calculate sum of daily precipitation and ETo for whole season so far
-        start2 = max(0,self.model.ClockStruct.TimeStepCounter -InitCond.DAP)
-        forecastsum = self.model.weather[start2:end,2:4].sum(axis=0).flatten()
+        start2 = max(0,self.model._clock_struct.time_step_counter -_init_cond.dap)
+        forecastsum = self.model.weather_df.to_numpy()[start2:end,2:4].sum(axis=0).flatten()
 
         #  yesterday precipitation and ETo and irr
-        start2 = max(0,self.model.ClockStruct.TimeStepCounter-1)
-        forecast_lag1 = self.model.weather[start2:end,2:4].flatten()
+        start2 = max(0,self.model._clock_struct.time_step_counter-1)
+        forecast_lag1 = self.model.weather_df.to_numpy()[start2:end,2:4].flatten()
 
         # calculate mean daily precipitation and ETo for next N days
-        start = self.model.ClockStruct.TimeStepCounter
+        start = self.model._clock_struct.time_step_counter
         end = start+self.forecast_lead_time
-        forecast2 = self.model.weather[start:end,2:4].mean(axis=0).flatten()
+        forecast2 = self.model.weather_df.to_numpy()[start:end,2:4].mean(axis=0).flatten()
         
         # state 
 
         # month and day
-        month = (self.model.ClockStruct.TimeSpan[self.model.ClockStruct.TimeStepCounter]).month
-        day = (self.model.ClockStruct.TimeSpan[self.model.ClockStruct.TimeStepCounter]).day
+        month = (self.model._clock_struct.time_span[self.model._clock_struct.time_step_counter]).month
+        day = (self.model._clock_struct.time_span[self.model._clock_struct.time_step_counter]).day
         
         # concatenate all weather variables
 
@@ -254,7 +260,7 @@ class CropEnv(gym.Env):
 
         # put growth stage in one-hot format
 
-        gs = np.clip(int(self.model.InitCond.GrowthStage)-1,0,4)
+        gs = np.clip(int(self.model._init_cond.growth_stage)-1,0,4)
         gs_1h = np.zeros(4)
         gs_1h[gs]=1
 
@@ -265,12 +271,12 @@ class CropEnv(gym.Env):
                         day,
                         month,
                         dep, # root-zone depletion
-                        InitCond.DAP,#days after planting
-                        InitCond.IrrCum, # irrigation used so far
-                        InitCond.CC,
-                        InitCond.B,
-                        self.chosen_max_irr_season-InitCond.IrrCum,
-                        # InitCond.GrowthStage,
+                        _init_cond.dap,#days after planting
+                        _init_cond.irr_net_cum, # irrigation used so far
+                        _init_cond.canopy_cover, # canopy cover 
+                        _init_cond.biomass, # biomass 
+                        self.chosen_max_irr_season-_init_cond.irr_net_cum,
+                        # _init_cond.GrowthStage,
                         
                         ]
                         +[f for f in forecast]
@@ -306,7 +312,7 @@ class CropEnv(gym.Env):
 
             depth = self.action_depths[int(action)]
 
-            self.model.ParamStruct.IrrMngt.depth = depth
+            self.model._param_struct.IrrMngt.depth = depth
 
         # if making banry yes/no irrigation decisions
 
@@ -317,14 +323,14 @@ class CropEnv(gym.Env):
             else:
                 depth=0
             
-            self.model.ParamStruct.IrrMngt.depth = depth
+            self.model._param_struct.IrrMngt.depth = depth
 
         # if spefiying depth from continuous range
 
         elif self.action_set in ['depth']:
 
             depth=np.clip(action[0],0,self.max_irr)
-            self.model.ParamStruct.IrrMngt.depth = depth
+            self.model._param_struct.IrrMngt.depth = depth
 
         # if deciding on soil-moisture targets
 
@@ -333,16 +339,17 @@ class CropEnv(gym.Env):
             new_smt=np.ones(4)*(action+1)*50
 
 
-        start_day = self.model.InitCond.DAP
+        start_day = self.model._init_cond.dap 
 
         for i in range(self.days_to_irr):
 
             # apply depth next day, and no more events till next decision
             
             if self.action_set in ['depth_discreet','binary','depth']:
-                self.irr_sched.append(self.model.ParamStruct.IrrMngt.depth)
-                self.model.step()
-                self.model.ParamStruct.IrrMngt.depth = 0
+                self.irr_sched.append(self.model._param_struct.IrrMngt.depth)
+                # self.model.step()
+                self.model.run_model()
+                self.model._param_struct.IrrMngt.depth = 0
             
             # if specifying soil-moisture target, 
             # irrigate if root zone soil moisture content
@@ -350,42 +357,43 @@ class CropEnv(gym.Env):
 
             elif self.action_set=='smt4':
 
-                if self.model.InitCond.TAW>0:
-                    dep = self.model.InitCond.Depletion/self.model.InitCond.TAW
+                if self.model._init_cond.taw>0:
+                    dep = self.model._init_cond.depletion/self.model._init_cond.taw
                 else:
                     dep=0
 
-                gs = int(self.model.InitCond.GrowthStage)-1
+                gs = int(self.model._init_cond.growth_stage)-1
                 if gs<0 or gs>3:
                     depth=0
                 else:
                     if 1-dep< (new_smt[gs])/100:
-                        depth = np.clip(self.model.InitCond.Depletion,0,self.max_irr)
+                        depth = np.clip(self.model._init_cond.depletion,0,self.max_irr)
                     else:
                         depth=0
     
-                self.model.ParamStruct.IrrMngt.depth = depth
-                self.irr_sched.append(self.model.ParamStruct.IrrMngt.depth)
+                self.model._param_struct.IrrMngt.depth = depth
+                self.irr_sched.append(self.model._param_struct.IrrMngt.depth)
 
-                self.model.step()
+                # self.model.step()
+                self.model.run_model()
 
 
             # termination conditions
 
-            if self.model.ClockStruct.ModelTermination is True:
+            if self.model._clock_struct.model_is_finished is True:
                 break
 
-            now_day = self.model.InitCond.DAP
+            now_day = self.model._init_cond.dap
             if (now_day >0) and (now_day<start_day):
                 # end of season
                 break
  
  
-        done = self.model.ClockStruct.ModelTermination
+        done = self.model._clock_struct.model_is_finished
         
         reward = 0
  
-        next_obs = self.get_obs(self.model.InitCond)
+        next_obs = self.get_obs(self.model._init_cond)
  
         if done:
         
