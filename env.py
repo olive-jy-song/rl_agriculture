@@ -4,7 +4,7 @@ Adapted & Updated from aquacrop-gym
 
 # from aquacrop.classes import *
 from aquacrop.core import *
-from aquacrop import InitialWaterContent as InitWCClass, Crop as CropClass, Soil as SoilClass 
+from aquacrop import InitialWaterContent as InitWCClass, Crop as CropClass, Soil as SoilClass, AquaCropModel, IrrigationManagement as IrrMngtClass
 
 import gym
 from gym import spaces
