@@ -1,8 +1,10 @@
+'''
+Adapted from aquacropgym 
+'''
+
 from aquacropeto import *
 import pandas as pd
 import numpy as np
-40.4
-1072
 
 def calc_eto_faopm(file,
                     year,
