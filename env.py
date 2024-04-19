@@ -104,7 +104,7 @@ class CropEnv(gym.Env):
 
         crop = config['crop']        
         if isinstance(crop,str):
-            self.crop = CropClass(crop,planting_date=config['planting_date'])
+            self.crop = CropClass(crop, planting_date=config['planting_date'])
         else:
             assert isinstance(crop,CropClass), "crop needs to be 'str' or 'CropClass'"
             self.crop=crop
@@ -205,7 +205,7 @@ class CropEnv(gym.Env):
         if self.dayshift:
             dayshift=np.random.randint(1,self.dayshift+1)
             # self.model.step(dayshift)
-            self.model.run_model(dayshift)
+            self.model.run_model(dayshift, initialize_model=False)
         
         # store irrigation events
         self.irr_sched=[]
@@ -348,7 +348,7 @@ class CropEnv(gym.Env):
             if self.action_set in ['depth_discreet','binary','depth']:
                 self.irr_sched.append(self.model._param_struct.IrrMngt.depth)
                 # self.model.step()
-                self.model.run_model()
+                self.model.run_model(initialize_model=False)
                 self.model._param_struct.IrrMngt.depth = 0
             
             # if specifying soil-moisture target, 
@@ -375,7 +375,7 @@ class CropEnv(gym.Env):
                 self.irr_sched.append(self.model._param_struct.IrrMngt.depth)
 
                 # self.model.step()
-                self.model.run_model()
+                self.model.run_model(initialize_model=False)
 
 
             # termination conditions
@@ -400,8 +400,8 @@ class CropEnv(gym.Env):
             self.tsteps+=1
 
             # calculate profit 
-            end_reward = (self.CROP_PRICE*self.model.Outputs.Final['Yield (tonne/ha)'].mean()
-                        - self.IRRIGATION_COST*self.model.Outputs.Final['Seasonal irrigation (mm)'].mean()
+            end_reward = (self.CROP_PRICE*self.model._outputs.final_stats['Yield potential (tonne/ha)'].mean()
+                        - self.IRRIGATION_COST*self.model._outputs.final_stats['Seasonal irrigation (mm)'].mean()
                         - self.FIXED_COST )
 
             

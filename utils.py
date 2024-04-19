@@ -5,6 +5,7 @@ Adapted from aquacropgym
 from aquacropeto import *
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
 def calc_eto_faopm(file,
                     year,
@@ -63,7 +64,7 @@ def evaluate_agent(
     
     train_reward=0
     test_reward=0
-    for i in range(100):
+    for i in tqdm(range(100)):
         envconfig=env_default_config.copy()
         envconfig['year1']=i+1
         envconfig['year2']=i+1
@@ -118,17 +119,13 @@ def evaluate_agent_single_year(
     cumulative_reward = 0
     hidden_state=[np.zeros(256, np.float32),
             np.zeros(256, np.float32)]
+    
+    steps = 0
     while not done:
-        if not stable_baselines:
-
-            try:
-                action,hidden_state,logits = test_agent.compute_action(state,hidden_state)
-            except:
-                action = test_agent.compute_action(state)
-        else:
-            action, _states = test_agent.predict(state, deterministic=True)
+        action, _states = test_agent.predict(state, deterministic=True)
         state, reward, done, _ = eval_env.step(action)
         cumulative_reward += reward
+        steps += 1
 
 
     return cumulative_reward
