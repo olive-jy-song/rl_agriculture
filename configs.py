@@ -10,10 +10,8 @@ import numpy as np
 
 # Default configuration for the Nebraska Maize  
 
-nebraska_weather_path = 'data/CDWG.dat' 
-
 nebraska_gendf = calc_eto_faopm(
-    nebraska_weather_path,
+    'data/nebraska.dat',
     year=1995,
     latitude=40.4,
     altitude=1072
@@ -36,7 +34,7 @@ nebraska_maize_config = dict(
     crop_price=180., # $/TONNE
     irrigation_cost = 1.,# $/HA-MM
     fixed_cost = 1728, # the fix cost of irrigation per year 
-    best=np.ones(100)*-1000, # a record of the best rewards among simulated per year 
+    best=np.ones(1000)*-1000, # a record of the best rewards among simulated per year 
     observation_set='default', # the choise of state definition 
     action_set='smt4',
     forecast_lead_time=7, # if we want 

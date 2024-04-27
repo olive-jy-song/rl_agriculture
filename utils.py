@@ -6,6 +6,8 @@ from stable_baselines3 import PPO, SAC, DDPG, A2C
 from env import CropEnv 
 import matplotlib.pyplot as plt 
 import seaborn as sns 
+from tqdm import tqdm 
+import os 
 
 configs = {
     'nebraska_maize_base': nebraska_maize_config
@@ -24,7 +26,8 @@ def evaluate_agent(model, base_config, year_range):
     crop_yields = [] 
     water_uses = [] 
 
-    for year in range(*year_range): 
+    # use tqdm 
+    for year in tqdm(range(*year_range)):
         profit, crop_yield, water_use = evaluate_agent_single_year(model, base_config, year) 
         profits.append(profit) 
         crop_yields.append(crop_yield) 
@@ -111,7 +114,7 @@ def plot_thresholds(thresholds_trained, thresholds_random, output_dir):
     plt.savefig(f'eval_figs/{output_dir}/thresholds.png')
 
 
-def plot_eval_histogram(trained, random, type, output_dir): 
+def plot_eval_hist(trained, random, type, output_dir): 
 
     plt.figure()
     sns.histplot(trained, color='blue', label='Trained') 
@@ -120,4 +123,8 @@ def plot_eval_histogram(trained, random, type, output_dir):
     plt.ylabel('frequency') 
     plt.legend() 
     plt.title(f'Distribution of {type}') 
+
+    if not os.path.exists(f'eval_figs/{output_dir}'): 
+        os.makedirs(f'eval_figs/{output_dir}') 
     plt.savefig(f'eval_figs/{output_dir}/{type}.png')  
+
