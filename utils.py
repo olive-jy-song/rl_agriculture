@@ -117,8 +117,8 @@ def plot_thresholds(thresholds_trained, thresholds_random, output_dir):
 def plot_eval_hist(trained, random, type, output_dir): 
 
     plt.figure()
-    sns.histplot(trained, color='blue', label='Trained') 
-    sns.histplot(random, color='red', label='Random') 
+    sns.histplot(trained, color='blue', label='Trained', alpha=0.5) 
+    sns.histplot(random, color='red', label='Random', alpha=0.5) 
     plt.xlabel(type) 
     plt.ylabel('frequency') 
     plt.legend() 
