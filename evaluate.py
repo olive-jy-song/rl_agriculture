@@ -42,7 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_type', type=str, help='name of the model, [PPO, SAC, A2C, DDPG]') 
     parser.add_argument('--model_path', type=str, help='path to the model') 
     parser.add_argument('--config_name', type=str, default='nebraska_maize_default', help='name of the configuration of environment') 
-    parser.add_argument('--output_dir', type=str, help='output directory for evaluation results, within eval_figs') 
+    parser.add_argument('--output_dir', type=str, default=None, help='output directory for evaluation results, within eval_figs') 
     parser.add_argument('--generate_plots', action='store_true', help='generate plots for evaluation results') 
 
     args = parser.parse_args()
