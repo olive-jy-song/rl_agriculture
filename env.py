@@ -9,36 +9,7 @@ from aquacrop import IrrigationManagement as IrrMngtClass
 import gym
 from gym import spaces
 
-import numpy as np
-
-
-
-nebraska_maize_config = dict(
-    name='nebraska_maize',
-    gendf=None, # generated and processed weather dataframe
-    year1=1, # lower bolund on train years
-    year2=70, # upper bound on train years
-    crop='Maize', # crop type (str or CropClass)
-    planting_date='05/01',
-    soil='SiltClayLoam', # soil type (str or SoilClass)
-    dayshift=1, # maximum number of days to simulate at start of season (ramdomly drawn)
-    include_rain=True, # maximum number of days to simulate at start of season (ramdomly drawn)
-    days_to_irr=7, # number of days (sim steps) to take between irrigation decisions
-    max_irr=25, # maximum irrigation depth per event
-    max_irr_season=10_000, # maximum irrigation appl for season
-    irr_cap_half_DAP=-999, # day after planting to half water supply
-    init_wc=InitWCClass(wc_type='Pct',value=[70]), # initial water content
-    crop_price=180., # $/TONNE
-    irrigation_cost = 1.,# $/HA-MM
-    fixed_cost = 1728,
-    best=np.ones(1000)*-1000, # current best profit for each year
-    observation_set='default',
-    action_set='smt4',
-    forecast_lead_time=7, # number of days perfect forecast if using observation set x
-    CO2conc=363.8,
-    simcalyear=1995,
-
-)
+import numpy as np 
 
 
 class CropEnv(gym.Env):
