@@ -4,4 +4,5 @@ python train.py \
     --save_dir '' \
     --train_steps 10 \
     --fig_dir ./nebraska_ppo \
-    --plot_train_curve 
+    --plot_train_curve \
+    --evaluate 
