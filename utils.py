@@ -134,7 +134,7 @@ def plot_train_curve(train_curve, fig_dir, type):
     plt.plot(train_curve) 
     plt.xlabel('Training Steps') 
     plt.ylabel('mean reward across all years') 
-    plt.title('Training Curve') 
+    plt.title(f'Curve for {type}') 
     if not os.path.exists(f'eval_figs/{fig_dir}'): 
         os.makedirs(f'eval_figs/{fig_dir}') 
     plt.savefig(f'eval_figs/{fig_dir}/{type}_curve.png') 
