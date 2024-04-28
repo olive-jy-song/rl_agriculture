@@ -106,7 +106,7 @@ def plot_thresholds(thresholds_trained, thresholds_random, output_dir):
     plt.figure() 
     plt.plot(thresholds_trained, color='blue', label='Trained') 
     plt.plot(thresholds_random, color='red', label='Random') 
-    plt.xlabel('Time (days)') 
+    plt.xlabel('Time (steps)') 
     plt.ylabel('Threshold') 
     plt.title('Irrigation Thresholds Throughout the Year') 
     plt.legend() 
