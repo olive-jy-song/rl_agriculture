@@ -18,7 +18,7 @@ def main(args):
 
     model = models[args.model_type]('MlpPolicy', env) 
     model.learn(total_timesteps=args.train_steps, progress_bar=True) 
-    train_curve, yield_curve, water_curve, yield_points = env.train_curve, env.yield_curve, env.water_curve, env.yield_points 
+    train_curve, yield_curve, water_curve, yield_points = env.train_curve, env.yield_curve, env.water_curve, env.yields 
     train_curve = [0] if not len(train_curve) else train_curve 
 
     # to lower case 
