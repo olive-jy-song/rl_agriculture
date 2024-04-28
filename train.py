@@ -24,7 +24,7 @@ def main(args):
     # to lower case 
     if not os.path.exists(f'.saved_model/{args.save_dir}'): 
         os.makedirs(f'.saved_model/{args.save_dir}') 
-    model.save(f".saved_model/{args.save_dir}/{args.model_type.lower()}_{train_curve[-1]}") 
+    model.save(f".saved_model/{args.save_dir}/{args.model_type.lower()}_{np.round(train_curve[-1],3)}") 
 
     if args.plot_train_curve: 
         plot_train_curve(train_curve, args.fig_dir, 'train') 
