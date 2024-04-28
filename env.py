@@ -63,7 +63,7 @@ class CropEnv(gym.Env):
 
         self.best_profit = np.ones(self.year2-self.year1+1) * (-1000) 
         self.best_yield = np.ones(self.year2-self.year1+1) * (-1000) 
-        self.best_water = np.ones(self.year2-self.year1+1) * (-1000) 
+        self.best_water = np.ones(self.year2-self.year1+1) * (100000) 
 
         self.tsteps=0 
 
@@ -78,6 +78,7 @@ class CropEnv(gym.Env):
         self.train_curve = [] 
         self.yield_curve = []    
         self.water_curve = [] 
+        self.rewards = [] 
 
                 
     def states(self):
@@ -265,7 +266,7 @@ class CropEnv(gym.Env):
                 - self.IRRIGATION_COST * water_use # water cost 
                 - self.FIXED_COST # fixed cost 
             ) 
-            self.reward = end_reward 
+            self.rewards.append(end_reward) 
 
             # keep track of best rewards in each season 
             # there can be multiple rewards for a season because of possibily repeated simulations 
@@ -273,7 +274,7 @@ class CropEnv(gym.Env):
             if self.chosen < self.split: 
                 self.best_profit[self.chosen-1] = max(self.best_profit[self.chosen-1],end_reward) 
                 self.best_yield[self.chosen-1] = max(self.best_yield[self.chosen-1],crop_yield)
-                self.best_water[self.chosen-1] = max(self.best_water[self.chosen-1],water_use) 
+                self.best_water[self.chosen-1] = min(self.best_water[self.chosen-1],water_use) 
                 
                 self.train_curve.append(np.mean(self.best_profit)) 
                 self.yield_curve.append(np.mean(self.best_yield)) 

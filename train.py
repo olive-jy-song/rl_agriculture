@@ -10,6 +10,7 @@ import numpy as np
 import warnings
 warnings.filterwarnings("ignore") 
 
+
 def main(args): 
 
     config = configs[args.config_name] 
@@ -17,17 +18,19 @@ def main(args):
 
     model = models[args.model_type]('MlpPolicy', env) 
     model.learn(total_timesteps=args.train_steps, progress_bar=True) 
-    train_curve, yield_curve, water_curve = env.train_curve, env.yield_curve, env.water_curve 
+    train_curve, yield_curve, water_curve, rewards = env.train_curve, env.yield_curve, env.water_curve, env.rewards 
     train_curve = [0] if not len(train_curve) else train_curve 
 
+    # to lower case 
     if not os.path.exists(f'.saved_model/{args.save_dir}'): 
         os.makedirs(f'.saved_model/{args.save_dir}') 
-    model.save(f".saved_model/{args.save_dir}/{args.model_type}_{train_curve[-1]}") 
+    model.save(f".saved_model/{args.save_dir}/{args.model_type.lower()}_{train_curve[-1]}") 
 
     if args.plot_train_curve: 
         plot_train_curve(train_curve, args.fig_dir, 'train') 
         plot_train_curve(yield_curve, args.fig_dir, 'yield') 
         plot_train_curve(water_curve, args.fig_dir, 'water') 
+        plot_train_curve(rewards, args.fig_dir, 'rewards') 
 
     if args.evaluate:
         n_years = len(config['gendf']) // 365 
@@ -44,7 +47,7 @@ def main(args):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser() 
-    
+
     parser.add_argument('--model_type', type=str, help='name of the model, [PPO, SAC, A2C, DDPG]') 
     parser.add_argument('--config_name', type=str, default='nebraska_maize_default', help='name of the configuration of environment') 
     parser.add_argument('--save_dir', type=str, default=None, help='path to save the model') 
