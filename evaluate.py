@@ -2,6 +2,8 @@ import argparse
 from utils import configs, models, evaluate_agent, plot_eval_hist, get_thresholds, plot_thresholds 
 import numpy as np 
 from env import CropEnv 
+import warnings
+warnings.filterwarnings("ignore") 
 
 def main(args): 
 
@@ -19,15 +21,15 @@ def main(args):
     if args.generate_plots: 
 
         # plot distributions of profits, crop yields, and water uses for both random and trained 
-        plot_eval_hist(trained_profits, random_profits, 'profits', args.output_dir) 
-        plot_eval_hist(trained_crop_yields, random_crop_yields, 'crop yields', args.output_dir) 
-        plot_eval_hist(trained_water_uses, random_water_uses, 'water uses', args.output_dir) 
+        plot_eval_hist(trained_profits, random_profits, 'profits', args.fig_dir) 
+        plot_eval_hist(trained_crop_yields, random_crop_yields, 'crop yields', args.fig_dir) 
+        plot_eval_hist(trained_water_uses, random_water_uses, 'water uses', args.fig_dir) 
 
         # choose a random test year, and plot the thresholds throughout the year 
         random_test_year = np.random.randint(test_start_idx, test_end_idx) 
         trained_thresholds = get_thresholds(trained_model, config, random_test_year) 
         random_thresholds = get_thresholds(random_model, config, random_test_year) 
-        plot_thresholds(trained_thresholds, random_thresholds, args.output_dir) 
+        plot_thresholds(trained_thresholds, random_thresholds, args.fig_dir) 
         
     mean_profit = np.mean(trained_profits) 
     mean_crop_yield = np.mean(trained_crop_yields)
