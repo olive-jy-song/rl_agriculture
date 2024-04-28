@@ -282,9 +282,6 @@ class CropEnv(gym.Env):
 
             reward = end_reward/1000 # scale reward down by 1000 
 
-            if self.tsteps % 100 == 0:
-                print(f'Year {self.chosen}, Reward: {reward}, Yield: {crop_yield}, Water: {water_use}') 
-
  
         return next_obs, reward, done, dict() 
  
