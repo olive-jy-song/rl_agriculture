@@ -61,9 +61,9 @@ class CropEnv(gym.Env):
         self.crop = Crop(config['crop'], planting_date=config['planting_date']) 
         self.soil = Soil(config['soil']) 
 
-        self.best_profit = np.ones(self.year2-self.year1+1) * (-1000) 
-        self.best_yield = np.ones(self.year2-self.year1+1) * (-1000) 
-        self.best_water = np.ones(self.year2-self.year1+1) * (100000) 
+        self.best_profit = np.ones(self.year2-self.year1+1) * (-500) 
+        self.best_yield = np.ones(self.year2-self.year1+1) * (-1) 
+        self.best_water = np.ones(self.year2-self.year1+1) * (1000) 
 
         self.tsteps=0 
 

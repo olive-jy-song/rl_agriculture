@@ -99,7 +99,7 @@ def get_thresholds(model, base_config, year):
         growth_stage = env.model._init_cond.growth_stage 
         obs, reward, done, _ = env.step(action) 
 
-        threshold = action[growth_stage-1] 
+        threshold = (action[growth_stage-1] + 1) * 50 
         thresholds.append(threshold) 
 
         if done: 
