@@ -7,9 +7,9 @@ def main(args):
 
     config = configs[args.config_name] 
     trained_model = models[args.model_type].load(args.model_path) 
-    random_model = models[args.model_type]('MlpPolicy', CropEnv(config))  
+    random_model = models[args.model_type]('MlpPolicy', CropEnv(config)) 
 
-    # Evaluation on the Test Years 
+    # evaluation on the test years 
     n_years = len(config['gendf']) // 365 
     test_start_idx = int(0.7 * n_years) 
     test_end_idx = n_years 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_type', type=str, help='name of the model, [PPO, SAC, A2C, DDPG]') 
     parser.add_argument('--model_path', type=str, help='path to the model') 
     parser.add_argument('--config_name', type=str, default='nebraska_maize_default', help='name of the configuration of environment') 
-    parser.add_argument('--output_dir', type=str, default=None, help='output directory for evaluation results, within eval_figs') 
+    parser.add_argument('--fig_dir', type=str, default=None, help='output directory for evaluation results, within eval_figs') 
     parser.add_argument('--generate_plots', action='store_true', help='generate plots for evaluation results') 
 
     args = parser.parse_args()

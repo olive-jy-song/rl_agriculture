@@ -1,9 +1,8 @@
 '''
+originally derived from 
 '''
 
-# from aquacrop.classes import *
-# from aquacrop.core import *
-from aquacrop import InitialWaterContent as InitWCClass, Crop as CropClass, Soil as SoilClass, AquaCropModel 
+from aquacrop import InitialWaterContent, Crop, Soil, AquaCropModel 
 from aquacrop import IrrigationManagement as IrrMngtClass
 
 import gym
@@ -40,7 +39,6 @@ class CropEnv(gym.Env):
         self.year1=config["year1"]
         self.year2=config["year2"] 
         self.dayshift = config["dayshift"]
-        self.include_rain=config["include_rain"]
         self.max_irr=config["max_irr"]
         self.init_wc = config["init_wc"]
         self.CROP_PRICE=config["crop_price"]
@@ -50,53 +48,36 @@ class CropEnv(gym.Env):
         self.planting_day = int(config['planting_date'].split('/')[1])
         self.max_irr_season=config['max_irr_season']
         self.name=config["name"]
-        self.best=config["best"]*1
+        # self.best=config["best"]*1
         self.simcalyear=config["simcalyear"]
-        self.CO2conc=config["CO2conc"]
-        self.observation_set=config["observation_set"]
-        self.action_set=config["action_set"]
+        self.observation_set=config["observation_set"] 
         self.forecast_lead_time=config["forecast_lead_time"]
+        self.split = self.year2 
 
         # randomly drawn weather year 
         self.chosen = np.random.choice([i for i in range(self.year1,self.year2+1)])
 
-        # crop and soil choice
+        # crop and soil choice 
+        self.crop = Crop(config['crop'], planting_date=config['planting_date']) 
+        self.soil = Soil(config['soil']) 
 
-        crop = config['crop']        
-        if isinstance(crop,str):
-            self.crop = CropClass(crop, planting_date=config['planting_date'])
-        else:
-            assert isinstance(crop,CropClass), "crop needs to be 'str' or 'CropClass'"
-            self.crop=crop
+        self.best_profit = np.ones(self.year2-self.year1+1) * (-1000) 
+        self.best_yield = np.ones(self.year2-self.year1+1) * (-1000) 
+        self.best_water = np.ones(self.year2-self.year1+1) * (-1000) 
 
-        soil = config['soil']
-        if isinstance(soil,str):
-            self.soil = SoilClass(soil)
-        else:
-            assert isinstance(soil,SoilClass), "soil needs to be 'str' or 'SoilClass'"
-            self.soil=soil
-     
-     
         self.tsteps=0 
 
-        # obsservation and action sets
-
-        if self.observation_set in ['default',]:
-            self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(18,), dtype=np.float32)
+        # obsservation and action sets 
+        if self.observation_set == 'default':
+            self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(18,), dtype=np.float32) 
+        elif self.observation_set == 'forecast': 
+            raise NotImplementedError('forecast observation set not implemented yet') 
         
-        if self.action_set=='smt4':
-            self.action_space = spaces.Box(low=-1., high=1., shape=(4,), dtype=np.float32)
+        self.action_space = spaces.Box(low=-1., high=1., shape=(4,), dtype=np.float32)  
 
-        elif self.action_set=='depth':
-            self.action_space = spaces.Box(low=-5., high=self.max_irr+5., shape=(1,), dtype=np.float32)
-    
-        elif self.action_set=='depth_discreet':
-            self.action_depths=[0,2.5,5,7.5,10,12.5,15,17.5,20,22.5,25]
-            self.action_space = spaces.Discrete(len(self.action_depths))    
-
-        elif self.action_set=='binary':
-            self.action_depths=[0,self.max_irr]
-            self.action_space = spaces.Discrete(len(self.action_depths))    
+        self.train_curve = [] 
+        self.yield_curve = []    
+        self.water_curve = [] 
 
                 
     def states(self):
@@ -116,46 +97,32 @@ class CropEnv(gym.Env):
         self.chosen=sim_year*1 
 
         # irrigation cap
-
-        if isinstance(self.max_irr_season, list):
-            if isinstance(self.max_irr_season[0], list):
-                self.chosen_max_irr_season = float(np.random.choice(self.max_irr_season[0]))
-            else:
-                self.chosen_max_irr_season = float(np.random.randint(self.max_irr_season[0],self.max_irr_season[1]))
-        else:
-            self.chosen_max_irr_season =self.max_irr_season*1.
+        self.chosen_max_irr_season =self.max_irr_season*1.
             
-
         # create and initialize model
-
         month = self.planting_month
         day=self.planting_day
-
+        
         self.model = AquaCropModel(f'{self.simcalyear}/{month}/{day}',f'{self.simcalyear}/12/31',
                                 self.wdf,self.soil,self.crop,
-                                irrigation_management=IrrMngtClass(irrigation_method=5,MaxIrrSeason=self.chosen_max_irr_season),\
-                                # co2_concentration=self.CO2conc,\
+                                irrigation_management=IrrMngtClass(irrigation_method=5,MaxIrrSeason=self.chosen_max_irr_season),
                                 initial_water_content=self.init_wc
                                 )
         self.model._initialize()
 
-        # remove rainfall from weather if requested
-
-        if not self.include_rain:
-            self.model.weather_df[:,2]=0
 
         # shift the start day of simulation by specified amound
         # default 1
 
         if self.dayshift:
-            dayshift=np.random.randint(1,self.dayshift+1)
-            # self.model.step(dayshift)
+            dayshift=np.random.randint(1,self.dayshift+1) 
             self.model.run_model(dayshift, initialize_model=False)
         
         # store irrigation events
         self.irr_sched=[]
 
-        return self.get_obs(self.model._init_cond)
+        return self.get_obs(self.model._init_cond) 
+    
  
     def get_obs(self,_init_cond):
         """
@@ -163,9 +130,7 @@ class CropEnv(gym.Env):
         and return as observation
         """
 
-        # calculate relative depletion
-        # if _init_cond.taw>0:
-        #     dep = _init_cond.Depletion/_init_cond.taw
+        # calculate relative depletion 
         if _init_cond.taw>0:
             dep = _init_cond.depletion/_init_cond.taw
         else:
@@ -230,11 +195,8 @@ class CropEnv(gym.Env):
 
                         , dtype=np.float32).reshape(-1)
 
-
-        else:
-            assert 1==2, 'no obs set'
         
-        return obs
+        return obs 
         
     def step(self,action):
         """
@@ -246,79 +208,33 @@ class CropEnv(gym.Env):
 
         calculate and return profit at end of season
 
-        """
+        """ 
 
-        # if choosing discrete depths
-
-        if self.action_set in ['depth_discreet']:
-
-            depth = self.action_depths[int(action)]
-
-            self.model._param_struct.IrrMngt.depth = depth
-
-        # if making banry yes/no irrigation decisions
-
-        elif self.action_set in ['binary']:
-
-            if action == 1:
-                depth = self.max_irr #apply max irr
-            else:
-                depth=0
-            
-            self.model._param_struct.IrrMngt.depth = depth
-
-        # if spefiying depth from continuous range
-
-        elif self.action_set in ['depth']:
-
-            depth=np.clip(action[0],0,self.max_irr)
-            self.model._param_struct.IrrMngt.depth = depth
-
-        # if deciding on soil-moisture targets
-
-        elif self.action_set=='smt4':
-
-            new_smt=np.ones(4)*(action+1)*50 # shape 4, range 0-50, float 
-
+        new_smt=np.ones(4)*(action+1)*50 # shape 4, range 0-50, float 
 
         start_day = self.model._init_cond.dap 
 
         for i in range(self.days_to_irr): # run N days 
 
-            # apply depth next day, and no more events till next decision
-            
-            if self.action_set in ['depth_discreet','binary','depth']:
-                self.irr_sched.append(self.model._param_struct.IrrMngt.depth)
-                # self.model.step()
-                self.model.run_model(initialize_model=False) 
-                self.model._param_struct.IrrMngt.depth = 0
-            
-            # if specifying soil-moisture target, 
-            # irrigate if root zone soil moisture content
-            # drops below threshold
+            if self.model._init_cond.taw>0:
+                dep = self.model._init_cond.depletion/self.model._init_cond.taw
+            else:
+                dep=0
 
-            elif self.action_set=='smt4':
-
-                if self.model._init_cond.taw>0:
-                    dep = self.model._init_cond.depletion/self.model._init_cond.taw
+            gs = int(self.model._init_cond.growth_stage)-1
+            if gs<0 or gs>3:
+                depth=0 # no irrigation 
+            else:
+                if 1-dep < (new_smt[gs])/100: # if water lower than threshold 
+                    depth = np.clip(self.model._init_cond.depletion,0,self.max_irr)
                 else:
-                    dep=0
+                    depth=0
 
-                gs = int(self.model._init_cond.growth_stage)-1
-                if gs<0 or gs>3:
-                    depth=0 # no irrigation 
-                else:
-                    if 1-dep < (new_smt[gs])/100: # if water lower than threshold 
-                        depth = np.clip(self.model._init_cond.depletion,0,self.max_irr)
-                    else:
-                        depth=0
-    
-                self.model._param_struct.IrrMngt.depth = depth
-                self.irr_sched.append(self.model._param_struct.IrrMngt.depth)
+            self.model._param_struct.IrrMngt.depth = depth
+            self.irr_sched.append(self.model._param_struct.IrrMngt.depth)
 
-                # self.model.step()
-                self.model.run_model(initialize_model=False) # simulate for one day 
-
+            # self.model.step()
+            self.model.run_model(initialize_model=False) # simulate for one day 
 
             # termination conditions
             # if this is the end of the year, don't run anymore  
@@ -341,18 +257,30 @@ class CropEnv(gym.Env):
         
             self.tsteps+=1
 
+            crop_yield = self.model._outputs.final_stats['Yield potential (tonne/ha)'].mean() 
+            water_use = self.model._outputs.final_stats['Seasonal irrigation (mm)'].mean() 
             # calculate profit reward 
-            end_reward = (self.CROP_PRICE*self.model._outputs.final_stats['Yield potential (tonne/ha)'].mean() # crop earning 
-                        - self.IRRIGATION_COST*self.model._outputs.final_stats['Seasonal irrigation (mm)'].mean() # water cost 
-                        - self.FIXED_COST ) 
+            end_reward = (
+                self.CROP_PRICE * crop_yield # crop earning 
+                - self.IRRIGATION_COST * water_use # water cost 
+                - self.FIXED_COST # fixed cost 
+            ) 
             self.reward = end_reward 
 
             # keep track of best rewards in each season 
             # there can be multiple rewards for a season because of possibily repeated simulations 
             # only comparisons for the same year are meaningful due to weather variability 
-            self.best[self.chosen-1] = max(self.best[self.chosen-1],end_reward) 
+            if self.chosen < self.split: 
+                self.best_profit[self.chosen-1] = max(self.best_profit[self.chosen-1],end_reward) 
+                self.best_yield[self.chosen-1] = max(self.best_yield[self.chosen-1],crop_yield)
+                self.best_water[self.chosen-1] = max(self.best_water[self.chosen-1],water_use) 
+                
+                self.train_curve.append(np.mean(self.best_profit)) 
+                self.yield_curve.append(np.mean(self.best_yield)) 
+                self.water_curve.append(np.mean(self.best_water)) 
 
             reward = end_reward/1000 # scale reward down by 1000 
+
  
         return next_obs, reward, done, dict() 
  

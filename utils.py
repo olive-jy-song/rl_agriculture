@@ -26,7 +26,6 @@ def evaluate_agent(model, base_config, year_range):
     crop_yields = [] 
     water_uses = [] 
 
-    # use tqdm 
     for year in tqdm(range(*year_range)):
         profit, crop_yield, water_use = evaluate_agent_single_year(model, base_config, year) 
         profits.append(profit) 
@@ -128,3 +127,14 @@ def plot_eval_hist(trained, random, type, output_dir):
         os.makedirs(f'eval_figs/{output_dir}') 
     plt.savefig(f'eval_figs/{output_dir}/{type}.png')  
 
+
+def plot_train_curve(train_curve, fig_dir, type): 
+
+    plt.figure() 
+    plt.plot(train_curve) 
+    plt.xlabel('Training Steps') 
+    plt.ylabel('mean reward across all years') 
+    plt.title('Training Curve') 
+    if not os.path.exists(f'eval_figs/{fig_dir}'): 
+        os.makedirs(f'eval_figs/{fig_dir}') 
+    plt.savefig(f'eval_figs/{fig_dir}/{type}_curve.png') 
