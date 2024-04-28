@@ -18,7 +18,7 @@ def main(args):
 
     model = models[args.model_type]('MlpPolicy', env) 
     model.learn(total_timesteps=args.train_steps, progress_bar=True) 
-    train_curve, yield_curve, water_curve, rewards = env.train_curve, env.yield_curve, env.water_curve, env.rewards 
+    train_curve, yield_curve, water_curve, yield_points = env.train_curve, env.yield_curve, env.water_curve, env.yield_points 
     train_curve = [0] if not len(train_curve) else train_curve 
 
     # to lower case 
@@ -30,7 +30,7 @@ def main(args):
         plot_train_curve(train_curve, args.fig_dir, 'train') 
         plot_train_curve(yield_curve, args.fig_dir, 'yield') 
         plot_train_curve(water_curve, args.fig_dir, 'water') 
-        plot_train_curve(rewards, args.fig_dir, 'rewards') 
+        plot_train_curve(yield_points, args.fig_dir, 'yield points') 
 
     if args.evaluate:
         n_years = len(config['gendf']) // 365 

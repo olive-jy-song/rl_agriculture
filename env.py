@@ -78,7 +78,7 @@ class CropEnv(gym.Env):
         self.train_curve = [] 
         self.yield_curve = []    
         self.water_curve = [] 
-        self.rewards = [] 
+        self.yields = [] 
 
                 
     def states(self):
@@ -266,7 +266,8 @@ class CropEnv(gym.Env):
                 - self.IRRIGATION_COST * water_use # water cost 
                 - self.FIXED_COST # fixed cost 
             ) 
-            self.rewards.append(end_reward) 
+            self.reward = end_reward 
+            self.yields.append(crop_yield) 
 
             # keep track of best rewards in each season 
             # there can be multiple rewards for a season because of possibily repeated simulations 
