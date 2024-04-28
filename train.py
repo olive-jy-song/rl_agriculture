@@ -16,7 +16,8 @@ def main(args):
     config = configs[args.config_name] 
     env = CropEnv(config) 
 
-    model = models[args.model_type]('MlpPolicy', env) 
+    model = models[args.model_type]('MlpPolicy', env, n_steps=args.n_steps) if args.n_steps is not None \
+        else models[args.model_type]('MlpPolicy', env)
     model.learn(total_timesteps=args.train_steps, progress_bar=True) 
     train_curve, yield_curve, water_curve, yield_points = env.train_curve, env.yield_curve, env.water_curve, env.yields 
     train_curve = [0] if not len(train_curve) else train_curve 
@@ -53,6 +54,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_dir', type=str, default=None, help='path to save the model') 
     parser.add_argument('--fig_dir', type=str, default=None) 
     parser.add_argument('--train_steps', type=int, default=250000, help='number of training steps') 
+    parser.add_argument('--n_steps', type=int, default=None, help='n_steps for on_policy') 
 
     parser.add_argument('--plot_train_curve', action='store_true', help='plot the training curve') 
     parser.add_argument('--evaluate', action='store_true', help='evaluate the model on test years') 

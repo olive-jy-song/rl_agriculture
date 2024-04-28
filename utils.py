@@ -10,7 +10,13 @@ from tqdm import tqdm
 import os 
 
 configs = {
-    'nebraska_maize_base': nebraska_maize_config
+    'nebraska_maize_base': nebraska_maize_config, 
+    'nebraska_maize_1day': nebraska_1day_config, 
+    'nebraska_maize_3day': nebraska_3day_config,
+    'nebraska_maize_5day': nebraska_5day_config,
+    'nebraska_maize_14day': nebraska_14day_config, 
+    'nebraska_maize_scarcewater': nebraska_scarcewater_config,
+    'nebraska_maize_abunwater': nebraska_abunwater_config 
 } 
 
 models = { 

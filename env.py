@@ -113,8 +113,7 @@ class CropEnv(gym.Env):
 
 
         # shift the start day of simulation by specified amound
-        # default 1
-
+        # default 1 
         if self.dayshift:
             dayshift=np.random.randint(1,self.dayshift+1) 
             self.model.run_model(dayshift, initialize_model=False)
