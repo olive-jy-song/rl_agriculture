@@ -71,7 +71,11 @@ class CropEnv(gym.Env):
         if self.observation_set == 'default':
             self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(18,), dtype=np.float32) 
         elif self.observation_set == 'forecast': 
-            raise NotImplementedError('forecast observation set not implemented yet') 
+            self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(20,), dtype=np.float32) 
+        elif self.observation_set == 'temperature':
+            self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(20,), dtype=np.float32) 
+        elif self.observation_set == 'no eto':
+            self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(17,), dtype=np.float32) 
         
         self.action_space = spaces.Box(low=-1., high=1., shape=(4,), dtype=np.float32)  
 
@@ -79,6 +83,8 @@ class CropEnv(gym.Env):
         self.yield_curve = []    
         self.water_curve = [] 
         self.yields = [] 
+
+        self.reward_scale = config['reward_scale'] # (yield scale, water scale) 
 
                 
     def states(self):
@@ -141,19 +147,27 @@ class CropEnv(gym.Env):
         end = self.model._clock_struct.time_step_counter
         forecast1 = self.model.weather_df.to_numpy()[start:end,2:4].mean(axis=0).flatten()
 
+        # calculate mean max temperature from last 7 days
+        temperature = self.model.weather_df.to_numpy()[start:end,0].mean(axis=0).flatten()
+
         # calculate sum of daily precipitation and ETo for whole season so far
         start2 = max(0,self.model._clock_struct.time_step_counter -_init_cond.dap)
         forecastsum = self.model.weather_df.to_numpy()[start2:end,2:4].sum(axis=0).flatten()
 
+
         #  yesterday precipitation and ETo and irr
         start2 = max(0,self.model._clock_struct.time_step_counter-1)
-        forecast_lag1 = self.model.weather_df.to_numpy()[start2:end,2:4].flatten()
+        forecast_lag1 = self.model.weather_df.to_numpy()[start2:end,2:4].flatten() 
+
+        # yesterday max temperature 
+        temperature_lag1 = self.model.weather_df.to_numpy()[start2:end,0].flatten() 
 
         # calculate mean daily precipitation and ETo for next N days
         start = self.model._clock_struct.time_step_counter
         end = start+self.forecast_lead_time
         forecast2 = self.model.weather_df.to_numpy()[start:end,2:4].mean(axis=0).flatten()
         
+
         # state 
 
         # month and day
@@ -162,11 +176,18 @@ class CropEnv(gym.Env):
         
         # concatenate all weather variables
 
-        if self.observation_set in ['default']:
+        if self.observation_set == 'default':
             forecast = np.concatenate([forecast1,forecastsum,forecast_lag1]).flatten()
         
         elif self.observation_set=='forecast':
-            forecast = np.concatenate([forecast1,forecastsum,forecast_lag1,forecast2,]).flatten()
+            forecast = np.concatenate([forecast1,forecastsum,forecast_lag1,forecast2,]).flatten() 
+
+        elif self.observation_set=='temperature': 
+            forecast = np.concatenate([forecast1,forecastsum,forecast_lag1, temperature, temperature_lag1]).flatten()
+
+        elif self.observation_set=='no eto': 
+            forecast = np.concatenate([[forecast1[0]],[forecastsum[0]],[forecast_lag1[0]]]).flatten()
+
 
         # put growth stage in one-hot format
 
@@ -176,25 +197,20 @@ class CropEnv(gym.Env):
 
         # create observation array
 
-        if self.observation_set in ['default','forecast']:
-            obs=np.array([
-                        day,
-                        month,
-                        dep, # root-zone depletion
-                        _init_cond.dap,#days after planting
-                        _init_cond.irr_net_cum, # irrigation used so far
-                        _init_cond.canopy_cover, # canopy cover 
-                        _init_cond.biomass, # biomass 
-                        self.chosen_max_irr_season-_init_cond.irr_net_cum,
-                        # _init_cond.GrowthStage,
-                        
-                        ]
-                        +[f for f in forecast]
-                        # +[ir for ir in ir_sched]
-                        +[g for g in gs_1h]
-
-                        , dtype=np.float32).reshape(-1)
-
+        obs=np.array([
+            day,
+            month,
+            dep, # root-zone depletion
+            _init_cond.dap,#days after planting
+            _init_cond.irr_net_cum, # irrigation used so far
+            _init_cond.canopy_cover, # canopy cover 
+            _init_cond.biomass, # biomass 
+            self.chosen_max_irr_season-_init_cond.irr_net_cum,        
+            ]
+            +[f for f in forecast]
+            # +[ir for ir in ir_sched]
+            +[g for g in gs_1h]
+            , dtype=np.float32).reshape(-1)
         
         return obs 
         
@@ -259,12 +275,8 @@ class CropEnv(gym.Env):
 
             crop_yield = self.model._outputs.final_stats['Yield potential (tonne/ha)'].mean() 
             water_use = self.model._outputs.final_stats['Seasonal irrigation (mm)'].mean() 
-            # calculate profit reward 
-            end_reward = (
-                self.CROP_PRICE * crop_yield # crop earning 
-                - self.IRRIGATION_COST * water_use # water cost 
-                - self.FIXED_COST # fixed cost 
-            ) 
+            profit = self.CROP_PRICE * crop_yield - self.IRRIGATION_COST * water_use - self.FIXED_COST 
+            end_reward = self.reward_scale[0]*self.CROP_PRICE*crop_yield - self.reward_scale[1]*water_use*self.IRRIGATION_COST - self.FIXED_COST 
             self.reward = end_reward 
             self.yields.append(crop_yield) 
 
@@ -272,7 +284,7 @@ class CropEnv(gym.Env):
             # there can be multiple rewards for a season because of possibily repeated simulations 
             # only comparisons for the same year are meaningful due to weather variability 
             if self.chosen < self.split: 
-                self.best_profit[self.chosen-1] = max(self.best_profit[self.chosen-1],end_reward) 
+                self.best_profit[self.chosen-1] = max(self.best_profit[self.chosen-1],profit) 
                 self.best_yield[self.chosen-1] = max(self.best_yield[self.chosen-1],crop_yield)
                 self.best_water[self.chosen-1] = min(self.best_water[self.chosen-1],water_use) 
                 

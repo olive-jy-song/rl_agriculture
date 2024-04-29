@@ -13,6 +13,8 @@ warnings.filterwarnings("ignore")
 
 def main(args): 
 
+    print(f'Training with {args.config_name}') 
+
     config = configs[args.config_name] 
     env = CropEnv(config) 
 

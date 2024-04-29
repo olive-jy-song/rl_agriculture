@@ -37,6 +37,7 @@ nebraska_maize_config = dict(
     observation_set='default', # the choise of state definition 
     forecast_lead_time=7, # if we want to use forecast, how many days ahead 
     simcalyear=1995, 
+    reward_scale=(1,1), # scaling of yield, water 
 ) 
 
 # the following configurations are variations of days to irrigate 
@@ -55,14 +56,58 @@ nebraska_14day_config['days_to_irr'] = 14
 # the following configurations are variations of water availability 
 nebraska_scarcewater_config = nebraska_maize_config.copy() 
 nebraska_scarcewater_config['max_irr'] = 5 
-nebraska_scarcewater_config['max_irr_season'] = 2000  
+nebraska_scarcewater_config['max_irr_season'] = 2000 
 
 nebraska_abunwater_config = nebraska_maize_config.copy() 
 nebraska_abunwater_config['max_irr'] = 100 
 nebraska_abunwater_config['max_irr_season'] = 40000 
 
+# with more control over action space 
+nebraska_control_config = nebraska_maize_config.copy() 
+nebraska_control_config['max_irr'] = 100 
+nebraska_control_config['max_irr_season'] = 1000 
 
+nebraska_morecontrol_config = nebraska_maize_config.copy() 
+nebraska_morecontrol_config['max_irr'] = 100 
+nebraska_morecontrol_config['max_irr_season'] = 500 
 
+nebraska_control400_config = nebraska_maize_config.copy() 
+nebraska_control400_config['max_irr'] = 100 
+nebraska_control400_config['max_irr_season'] = 400 
+
+nebraska_control750_config = nebraska_maize_config.copy() 
+nebraska_control750_config['max_irr'] = 100
+nebraska_control750_config['max_irr_season'] = 750 
+
+nebraska_best = nebraska_morecontrol_config.copy() 
+# the following configurations are for reward scaling of yield & water 
+nebraska_scale1_config = nebraska_best.copy() 
+nebraska_scale1_config['reward_scale'] = (1, 0.1) 
+
+nebraska_scale2_config = nebraska_best.copy() 
+nebraska_scale2_config['reward_scale'] = (1, 0) # no reward cost considered 
+
+nebraska_scale3_config = nebraska_best.copy() 
+nebraska_scale3_config['reward_scale'] = (1, 0.5) 
+
+# the following configurations are used for using weather forecast as states 
+nebraska_forecast_config = nebraska_best.copy() 
+nebraska_forecast_config['observation_set'] = 'forecast' 
+nebraska_forecast_config['forecast_lead_time'] = 7 
+
+nebraska_forecast2_config = nebraska_best.copy() 
+nebraska_forecast2_config['observation_set'] = 'forecast' 
+nebraska_forecast2_config['forecast_lead_time'] = 7 
+nebraska_forecast2_config['max_irr_season'] = 1000 
+
+# use max temperature as state 
+nebraska_maxtemp_config = nebraska_best.copy() 
+nebraska_maxtemp_config['observation_set'] = 'temperature' 
+nebraska_maxtemp_config['max_irr_season'] = 750 
+
+# use no eto as state 
+nebraska_noeto_config = nebraska_best.copy()
+nebraska_noeto_config['observation_set'] = 'noeto' 
 
 
 

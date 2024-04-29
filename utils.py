@@ -3,6 +3,7 @@
 
 from configs import * 
 from stable_baselines3 import PPO, SAC, DDPG, A2C
+from sb3_contrib import TRPO
 from env import CropEnv 
 import matplotlib.pyplot as plt 
 import seaborn as sns 
@@ -16,14 +17,27 @@ configs = {
     'nebraska_maize_5day': nebraska_5day_config,
     'nebraska_maize_14day': nebraska_14day_config, 
     'nebraska_maize_scarcewater': nebraska_scarcewater_config,
-    'nebraska_maize_abunwater': nebraska_abunwater_config 
+    'nebraska_maize_abunwater': nebraska_abunwater_config, 
+    'nebraska_maize_scale1': nebraska_scale1_config, 
+    'nebraska_maize_control': nebraska_control_config, 
+    'nebraska_maize_forecast': nebraska_forecast_config, 
+    'nebraska_maize_morecontrol': nebraska_morecontrol_config, 
+    'nebraska_maize_control400': nebraska_control400_config, 
+    'nebraska_maize_scale2': nebraska_scale2_config, 
+    'nebraska_maize_control750': nebraska_control750_config, 
+    'nebraska_maize_forecast2': nebraska_forecast2_config, 
+    'nebraska_maize_best': nebraska_best, 
+    'nebraska_maize_maxtemp': nebraska_maxtemp_config, 
+    'nebraska_maize_scale3': nebraska_scale3_config, 
+    'nebraska_maize_noeto': nebraska_noeto_config
 } 
 
 models = { 
     'PPO': PPO, 
     'SAC': SAC,
     'DDPG': DDPG,
-    'A2C': A2C 
+    'A2C': A2C, 
+    'TRPO': TRPO 
 } 
 
 def evaluate_agent(model, base_config, year_range): 
@@ -139,7 +153,7 @@ def plot_train_curve(train_curve, fig_dir, type):
     plt.figure() 
     plt.plot(train_curve) 
     plt.xlabel('trajectories') 
-    plt.ylabel('mean reward across all years') 
+    plt.ylabel('mean BEST across all years') 
     plt.title(f'Curve for {type}') 
     if not os.path.exists(f'eval_figs/{fig_dir}'): 
         os.makedirs(f'eval_figs/{fig_dir}') 
