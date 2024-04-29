@@ -88,7 +88,7 @@ nebraska_scale2_config = nebraska_best.copy()
 nebraska_scale2_config['reward_scale'] = (1, 0) # no reward cost considered 
 
 nebraska_scale3_config = nebraska_best.copy() 
-nebraska_scale3_config['reward_scale'] = (1, 0.5) 
+nebraska_scale3_config['reward_scale'] = (0.7, 1) 
 
 # the following configurations are used for using weather forecast as states 
 nebraska_forecast_config = nebraska_best.copy() 

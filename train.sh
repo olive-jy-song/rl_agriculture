@@ -194,33 +194,85 @@
 #     --plot_train_curve \
 #     --evaluate
 
-# nebraska_maize_maxtemp 
+# # nebraska_maize_maxtemp 
+# python train.py \
+#     --model_type PPO \
+#     --config_name nebraska_maize_maxtemp \
+#     --save_dir nebraska_maxtemp \
+#     --train_steps 200000 \
+#     --fig_dir ./nebraska_maxtemp \
+#     --n_steps 18 \
+#     --plot_train_curve \
+#     --evaluate 
+
+# # TRPO with forecast 
+# python train.py \
+#     --model_type TRPO \
+#     --config_name nebraska_maize_forecast\
+#     --save_dir nebraska_trpo_fore \
+#     --train_steps 200000 \
+#     --fig_dir ./nebraska_trpo_fore \
+#     --plot_train_curve \
+#     --evaluate  
+
+# # nebraska_maize_maxtemp 
+# python train.py \
+#     --model_type TRPO \
+#     --config_name nebraska_maize_maxtemp \
+#     --save_dir nebraska_trpo_temp \
+#     --train_steps 200000 \
+#     --fig_dir ./nebraska_trpo_temp \
+#     --plot_train_curve \
+#     --evaluate  
+
+# # PPO scale 3 
+# python train.py \
+#     --model_type PPO \
+#     --config_name nebraska_maize_scale3 \
+#     --save_dir nebraska_scale3 \
+#     --train_steps 200000 \
+#     --fig_dir ./nebraska_scale3 \
+#     --n_steps 18 \
+#     --plot_train_curve \
+#     --evaluate 
+
+# PPO no eto 
 python train.py \
     --model_type PPO \
-    --config_name nebraska_maize_maxtemp \
-    --save_dir nebraska_maxtemp \
+    --config_name nebraska_maize_noeto \
+    --save_dir nebraska_noeto \
     --train_steps 200000 \
-    --fig_dir ./nebraska_maxtemp \
+    --fig_dir ./nebraska_noeto \
     --n_steps 18 \
     --plot_train_curve \
     --evaluate 
 
-# TRPO with forecast 
+# DDPG with best 
 python train.py \
-    --model_type TRPO \
-    --config_name nebraska_maize_forecast\
-    --save_dir nebraska_trpo_fore \
+    --model_type DDPG \
+    --config_name nebraska_maize_best \
+    --save_dir nebraska_ddpg_best \
     --train_steps 200000 \
-    --fig_dir ./nebraska_trpo_fore \
+    --fig_dir ./nebraska_ddpg_best \
     --plot_train_curve \
-    --evaluate  
+    --evaluate 
 
-# nebraska_maize_maxtemp 
+# A2C with best 
 python train.py \
-    --model_type TRPO \
-    --config_name nebraska_maize_maxtemp \
-    --save_dir nebraska_trpo_temp \
+    --model_type A2C \
+    --config_name nebraska_maize_best \
+    --save_dir nebraska_a2c_best \
     --train_steps 200000 \
-    --fig_dir ./nebraska_trpo_temp \
+    --fig_dir ./nebraska_a2c_best \
     --plot_train_curve \
-    --evaluate  
+    --evaluate 
+
+# SAC with best 
+python train.py \
+    --model_type SAC \
+    --config_name nebraska_maize_best \
+    --save_dir nebraska_sac_best \
+    --train_steps 200000 \
+    --fig_dir ./nebraska_sac_best \
+    --plot_train_curve \
+    --evaluate 
