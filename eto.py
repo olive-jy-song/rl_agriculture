@@ -8,7 +8,6 @@ def calc_eto_faopm(file,
                     generated=True,
                     order=["simyear","jday","minTemp","maxTemp","precip","rad"]):
     """ 
-    TODO: this function was adapted from xx. 
     Uses FAO-PM to calculate reference evapotranspiration for LARS generated and baseline input data. 
     """
 

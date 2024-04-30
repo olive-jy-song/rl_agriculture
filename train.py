@@ -1,5 +1,7 @@
 '''
-
+This script is used to train the model on the CropEnv environment. The model is saved at the end of training. 
+It supports passing in the model type, configuration name, save directory, figure directory, number of training steps. 
+It uses stable-baselines3 to train the model. And can access and plot the training curves and evaluate the model on test years. 
 ''' 
 
 import argparse 
@@ -15,26 +17,32 @@ def main(args):
 
     print(f'Training with {args.config_name}') 
 
+    # config & environment 
     config = configs[args.config_name] 
     env = CropEnv(config) 
 
+    # our agent, with pass in model_type 
     model = models[args.model_type]('MlpPolicy', env, n_steps=args.n_steps) if args.n_steps is not None \
         else models[args.model_type]('MlpPolicy', env)
     model.learn(total_timesteps=args.train_steps, progress_bar=True) 
+
+    # obtain the training curve 
     train_curve, yield_curve, water_curve, yield_points = env.train_curve, env.yield_curve, env.water_curve, env.yields 
     train_curve = [0] if not len(train_curve) else train_curve 
 
-    # to lower case 
+    # create directory if doesn't exist & save the model 
     if not os.path.exists(f'.saved_model/{args.save_dir}'): 
         os.makedirs(f'.saved_model/{args.save_dir}') 
     model.save(f".saved_model/{args.save_dir}/{args.model_type.lower()}_{np.round(train_curve[-1],3)}") 
 
+    # plot the training curve 
     if args.plot_train_curve: 
         plot_train_curve(train_curve, args.fig_dir, 'train') 
         plot_train_curve(yield_curve, args.fig_dir, 'yield') 
         plot_train_curve(water_curve, args.fig_dir, 'water') 
         plot_train_curve(yield_points, args.fig_dir, 'yield points') 
 
+    # evaluate the model on test years 
     if args.evaluate:
         n_years = len(config['gendf']) // 365 
         test_start_idx = int(0.7 * n_years) 

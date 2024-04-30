@@ -1,4 +1,5 @@
 ''' 
+This file contains utility functions for evaluating the trained models. 
 '''
 
 from configs import * 
@@ -9,6 +10,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns 
 from tqdm import tqdm 
 import os 
+
+# define the mappings of the configurations and models for easy use and access 
 
 configs = {
     'nebraska_maize_base': nebraska_maize_config, 
@@ -46,6 +49,9 @@ models = {
 } 
 
 def evaluate_agent(model, base_config, year_range): 
+    '''
+    Evaluate the agent for a range of years. 
+    '''
 
     profits = [] 
     crop_yields = [] 
@@ -127,6 +133,9 @@ def get_thresholds(model, base_config, year):
     return thresholds
 
 def plot_thresholds(thresholds_trained, thresholds_random, output_dir): 
+    '''
+    Plot the thresholds for trained and random models. 
+    '''
 
     plt.figure() 
     plt.plot(thresholds_trained, color='blue', label='Trained') 
@@ -139,6 +148,9 @@ def plot_thresholds(thresholds_trained, thresholds_random, output_dir):
 
 
 def plot_eval_hist(trained, random, type, output_dir): 
+    '''
+    Plot the histogram of the trained and random models. 
+    '''
 
     plt.figure()
     sns.histplot(trained, color='blue', label='Trained', alpha=0.5) 
@@ -154,6 +166,9 @@ def plot_eval_hist(trained, random, type, output_dir):
 
 
 def plot_train_curve(train_curve, fig_dir, type): 
+    '''
+    Plot the training curve. 
+    '''
 
     plt.figure() 
     plt.plot(train_curve) 
@@ -165,6 +180,9 @@ def plot_train_curve(train_curve, fig_dir, type):
     plt.savefig(f'eval_figs/{fig_dir}/{type}_curve.png') 
 
 def plot_checkpoints(curve, fig_dir, type): 
+    '''
+    Plot the checkpoints curve. 
+    '''
 
     plt.figure() 
     plt.plot(curve) 
