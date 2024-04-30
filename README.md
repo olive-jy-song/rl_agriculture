@@ -2,7 +2,9 @@
 
 ## Team ExplodingGrads
 Jiayuan Song, js10417@nyu.edu
+
 Weiyushi Tian, wt694@nyu.edu
+
 Zhenyao Gu, zg2187@nyu.edu
 
 ## Goal 
