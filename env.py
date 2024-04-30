@@ -124,13 +124,12 @@ class CropEnv(gym.Env):
         self.model._initialize() # initialize our simulation model 
 
 
-        # shift the start day of simulation by specified amound
-        # default 1 
+        # shift the start day of simulation by random amount, which happens in reality 
         if self.dayshift:
             dayshift=np.random.randint(1,self.dayshift+1) 
             self.model.run_model(dayshift, initialize_model=False)
         
-        # store irrigation events
+        # we store the irrigation events
         self.irr_sched=[]
 
         return self.get_obs(self.model._init_cond) 
@@ -160,7 +159,6 @@ class CropEnv(gym.Env):
         start2 = max(0,self.model._clock_struct.time_step_counter -_init_cond.dap)
         forecastsum = self.model.weather_df.to_numpy()[start2:end,2:4].sum(axis=0).flatten()
 
-
         #  yesterday precipitation and ETo and irr
         start2 = max(0,self.model._clock_struct.time_step_counter-1)
         forecast_lag1 = self.model.weather_df.to_numpy()[start2:end,2:4].flatten() 
@@ -173,15 +171,12 @@ class CropEnv(gym.Env):
         end = start+self.forecast_lead_time
         forecast2 = self.model.weather_df.to_numpy()[start:end,2:4].mean(axis=0).flatten()
         
-
         # state 
-
         # month and day
         month = (self.model._clock_struct.time_span[self.model._clock_struct.time_step_counter]).month
         day = (self.model._clock_struct.time_span[self.model._clock_struct.time_step_counter]).day
         
-        # concatenate all weather variables
-
+        # concatenate all weather variables 
         if self.observation_set == 'default':
             forecast = np.concatenate([forecast1,forecastsum,forecast_lag1]).flatten()
         
@@ -195,14 +190,12 @@ class CropEnv(gym.Env):
             forecast = np.concatenate([[forecast1[0]],[forecastsum[0]],[forecast_lag1[0]]]).flatten()
 
 
-        # put growth stage in one-hot format
-
+        # put growth stage in one-hot format 
         gs = np.clip(int(self.model._init_cond.growth_stage)-1,0,4)
         gs_1h = np.zeros(4)
         gs_1h[gs]=1
 
-        # create observation array
-
+        # create observation array with additional features, that is applicable to all state definitions 
         obs=np.array([
             day,
             month,
@@ -211,10 +204,9 @@ class CropEnv(gym.Env):
             _init_cond.irr_net_cum, # irrigation used so far
             _init_cond.canopy_cover, # canopy cover 
             _init_cond.biomass, # biomass 
-            self.chosen_max_irr_season-_init_cond.irr_net_cum,        
+            self.chosen_max_irr_season-_init_cond.irr_net_cum, # remaining irrigation availibility         
             ]
             +[f for f in forecast]
-            # +[ir for ir in ir_sched]
             +[g for g in gs_1h]
             , dtype=np.float32).reshape(-1)
         
@@ -232,34 +224,36 @@ class CropEnv(gym.Env):
 
         """ 
 
-        new_smt=np.ones(4)*(action+1)*50 # shape 4, range 0-50, float 
+        new_smt=np.ones(4)*(action+1)*50 # shape 4, range 0-100, float 
 
-        start_day = self.model._init_cond.dap 
+        start_day = self.model._init_cond.dap # our starting day of simulation 
 
-        for i in range(self.days_to_irr): # run N days 
+        for i in range(self.days_to_irr): # run N days, this is how often we make a decision 
 
+            # calculate depletion 
             if self.model._init_cond.taw>0:
                 dep = self.model._init_cond.depletion/self.model._init_cond.taw
             else:
                 dep=0
 
+            # obtain the growth stage 
             gs = int(self.model._init_cond.growth_stage)-1
             if gs<0 or gs>3:
                 depth=0 # no irrigation 
             else:
-                if 1-dep < (new_smt[gs])/100: # if water lower than threshold 
-                    depth = np.clip(self.model._init_cond.depletion,0,self.max_irr)
+                if 1-dep < (new_smt[gs])/100: # if water lower than threshold, we irrigate 
+                    depth = np.clip(self.model._init_cond.depletion,0,self.max_irr) # cap by the daily maximum amount 
                 else:
                     depth=0
 
-            self.model._param_struct.IrrMngt.depth = depth
-            self.irr_sched.append(self.model._param_struct.IrrMngt.depth)
+            # assign the amount we'd like to irrigate 
+            self.model._param_struct.IrrMngt.depth = depth 
+            self.irr_sched.append(self.model._param_struct.IrrMngt.depth) # record the irrigation schedule 
 
-            # self.model.step()
             self.model.run_model(initialize_model=False) # simulate for one day 
 
             # termination conditions
-            # if this is the end of the year, don't run anymore  
+            # if this is the end of the season, we don't run the simulation anymore  
             if self.model._clock_struct.model_is_finished is True:
                 break
 
@@ -269,22 +263,24 @@ class CropEnv(gym.Env):
                 break
  
  
-        done = self.model._clock_struct.model_is_finished
+        done = self.model._clock_struct.model_is_finished # done if the season is finished 
         
-        reward = 0
+        reward = 0 # reward is by default 0, and only non-zero when the season ends and we have the yield 
  
-        next_obs = self.get_obs(self.model._init_cond)
+        next_obs = self.get_obs(self.model._init_cond) # get the next observation 
  
         if done:
         
-            self.tsteps+=1
+            self.tsteps+=1 # increment the number of trajectories completed 
 
-            crop_yield = self.model._outputs.final_stats['Yield potential (tonne/ha)'].mean() 
-            water_use = self.model._outputs.final_stats['Seasonal irrigation (mm)'].mean() 
-            profit = self.CROP_PRICE * crop_yield - self.IRRIGATION_COST * water_use - self.FIXED_COST 
-            end_reward = self.reward_scale[0]*self.CROP_PRICE*crop_yield - self.reward_scale[1]*water_use*self.IRRIGATION_COST - self.FIXED_COST 
+            crop_yield = self.model._outputs.final_stats['Yield potential (tonne/ha)'].mean() # get the crop yield 
+            water_use = self.model._outputs.final_stats['Seasonal irrigation (mm)'].mean() # get the water use 
+            profit = self.CROP_PRICE * crop_yield - self.IRRIGATION_COST * water_use - self.FIXED_COST # calculate the profit 
+            end_reward = self.reward_scale[0]*self.CROP_PRICE*crop_yield \
+                - self.reward_scale[1]*water_use*self.IRRIGATION_COST \
+                - self.FIXED_COST # scale the reward by the weights, by default the weights are 1,1 
             self.reward = end_reward 
-            self.yields.append(crop_yield) 
+            self.yields.append(crop_yield) # record the yield 
 
             # keep track of best rewards in each season 
             # there can be multiple rewards for a season because of possibily repeated simulations 
@@ -298,10 +294,10 @@ class CropEnv(gym.Env):
                 self.yield_curve.append(np.mean(self.best_yield)) 
                 self.water_curve.append(np.mean(self.best_water)) 
 
-            reward = end_reward/1000 # scale reward down by 1000 
+            reward = end_reward/1000 # scale reward down by 1000 for stability 
 
  
-        return next_obs, reward, done, dict() 
+        return next_obs, reward, done, dict() # return the next observation, reward, done, and an empty info 
  
  
    
