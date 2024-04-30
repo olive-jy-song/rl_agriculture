@@ -1,6 +1,7 @@
 # rl_agriculture
 
-## Team ExplodingGrads
+Team ExplodingGrads: 
+
 Jiayuan Song, js10417@nyu.edu
 
 Weiyushi Tian, wt694@nyu.edu
