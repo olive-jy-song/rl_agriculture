@@ -71,9 +71,9 @@ nebraska_morecontrol_config = nebraska_maize_config.copy()
 nebraska_morecontrol_config['max_irr'] = 100 
 nebraska_morecontrol_config['max_irr_season'] = 500 
 
-nebraska_control400_config = nebraska_maize_config.copy() 
-nebraska_control400_config['max_irr'] = 100 
-nebraska_control400_config['max_irr_season'] = 400 
+nebraska_control300_config = nebraska_maize_config.copy() 
+nebraska_control300_config['max_irr'] = 100 
+nebraska_control300_config['max_irr_season'] = 300 
 
 nebraska_control750_config = nebraska_maize_config.copy() 
 nebraska_control750_config['max_irr'] = 100
@@ -107,9 +107,26 @@ nebraska_maxtemp_config['max_irr_season'] = 750
 
 # use no eto as state 
 nebraska_noeto_config = nebraska_best.copy()
-nebraska_noeto_config['observation_set'] = 'noeto' 
+nebraska_noeto_config['observation_set'] = 'no eto' 
 
 
+#the following configurations are variations of water content
+nebraska_water0_config = nebraska_maize_config.copy() 
+nebraska_water0_config['init_wc']=InitialWaterContent(wc_type='Pct',value=[0])
 
+nebraska_water50_config = nebraska_maize_config.copy() 
+nebraska_water50_config['init_wc']=InitialWaterContent(wc_type='Pct',value=[50])
+
+nebraska_water100_config = nebraska_maize_config.copy() 
+nebraska_water100_config['init_wc']=InitialWaterContent(wc_type='Pct',value=[100]) 
+
+#the following configurations are variations of crops 
+nebraska_wheat_config = nebraska_maize_config.copy()
+nebraska_wheat_config['crop'] = 'Wheat'
+nebraska_wheat_config['crop_price']= 298.1
+
+nebraska_soybean_config = nebraska_maize_config.copy()
+nebraska_soybean_config['crop'] = 'Soybean'
+nebraska_soybean_config['crop_price'] = 664.45
 
 

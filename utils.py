@@ -16,20 +16,25 @@ configs = {
     'nebraska_maize_3day': nebraska_3day_config,
     'nebraska_maize_5day': nebraska_5day_config,
     'nebraska_maize_14day': nebraska_14day_config, 
-    'nebraska_maize_scarcewater': nebraska_scarcewater_config,
-    'nebraska_maize_abunwater': nebraska_abunwater_config, 
+    'nebraska_maize_maxirr_40k': nebraska_abunwater_config, 
+    'nebraska_maize_maxirr_2k': nebraska_scarcewater_config, 
+    'nebraska_maize_maxirr_1k': nebraska_control_config,
+    'nebraska_maize_maxirr_750': nebraska_control750_config,
+    'nebraska_maize_maxirr_500': nebraska_morecontrol_config, 
+    'nebraska_maize_maxirr_300': nebraska_control300_config, 
     'nebraska_maize_scale1': nebraska_scale1_config, 
-    'nebraska_maize_control': nebraska_control_config, 
-    'nebraska_maize_forecast': nebraska_forecast_config, 
-    'nebraska_maize_morecontrol': nebraska_morecontrol_config, 
-    'nebraska_maize_control400': nebraska_control400_config, 
     'nebraska_maize_scale2': nebraska_scale2_config, 
-    'nebraska_maize_control750': nebraska_control750_config, 
+    'nebraska_maize_scale3': nebraska_scale3_config,
+    'nebraska_maize_temp': nebraska_maxtemp_config,
+    'nebraska_maize_noeto': nebraska_noeto_config, 
+    'nebraska_maize_forecast': nebraska_forecast_config, 
     'nebraska_maize_forecast2': nebraska_forecast2_config, 
     'nebraska_maize_best': nebraska_best, 
-    'nebraska_maize_maxtemp': nebraska_maxtemp_config, 
-    'nebraska_maize_scale3': nebraska_scale3_config, 
-    'nebraska_maize_noeto': nebraska_noeto_config
+    'nebraska_wheat_base': nebraska_wheat_config,
+    'nebraska_soybean_base': nebraska_soybean_config,
+    'nebraska_maize_water0': nebraska_water0_config,
+    'nebraska_maize_water50': nebraska_water50_config,
+    'nebraska_maize_water100': nebraska_water100_config 
 } 
 
 models = { 
@@ -154,6 +159,17 @@ def plot_train_curve(train_curve, fig_dir, type):
     plt.plot(train_curve) 
     plt.xlabel('trajectories') 
     plt.ylabel('mean BEST across all years') 
+    plt.title(f'Curve for {type}') 
+    if not os.path.exists(f'eval_figs/{fig_dir}'): 
+        os.makedirs(f'eval_figs/{fig_dir}') 
+    plt.savefig(f'eval_figs/{fig_dir}/{type}_curve.png') 
+
+def plot_checkpoints(curve, fig_dir, type): 
+
+    plt.figure() 
+    plt.plot(curve) 
+    plt.xlabel('checkpoints') 
+    plt.ylabel(f'validation performance on {type}') 
     plt.title(f'Curve for {type}') 
     if not os.path.exists(f'eval_figs/{fig_dir}'): 
         os.makedirs(f'eval_figs/{fig_dir}') 

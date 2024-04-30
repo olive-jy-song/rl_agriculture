@@ -1,5 +1,5 @@
 '''
-originally derived from 
+This script implements the crop plantation environment based on AquaCrop-OSPy model. 
 '''
 
 from aquacrop import InitialWaterContent, Crop, Soil, AquaCropModel 
@@ -31,43 +31,44 @@ class CropEnv(gym.Env):
  
     def __init__(self,config):
 
-        
         super(CropEnv, self).__init__()
- 
-        self.gendf = config["gendf"]
-        self.days_to_irr=config["days_to_irr"]
-        self.year1=config["year1"]
-        self.year2=config["year2"] 
-        self.dayshift = config["dayshift"]
-        self.max_irr=config["max_irr"]
-        self.init_wc = config["init_wc"]
-        self.CROP_PRICE=config["crop_price"]
-        self.IRRIGATION_COST=config["irrigation_cost"] 
-        self.FIXED_COST = config["fixed_cost"]
-        self.planting_month = int(config['planting_date'].split('/')[0])
-        self.planting_day = int(config['planting_date'].split('/')[1])
-        self.max_irr_season=config['max_irr_season']
-        self.name=config["name"]
-        # self.best=config["best"]*1
-        self.simcalyear=config["simcalyear"]
-        self.observation_set=config["observation_set"] 
-        self.forecast_lead_time=config["forecast_lead_time"]
-        self.split = self.year2 
+    
+        # unpack config parameters, which define the variations of environment 
+        self.gendf = config["gendf"] # this is the weather data of Nebraska, including temperatures, precipitation, and ETo 
+        self.days_to_irr=config["days_to_irr"] # this is the frequency of making a decision - how often we change the thresholds 
+        self.year1=config["year1"] # this is the start year of the training data 
+        self.year2=config["year2"] # this is the end year of the training data  
+        self.dayshift = config["dayshift"] # this is the possible shift of planting date of the crop 
+        self.max_irr=config["max_irr"] # this is the maximum irrigation depth per day 
+        self.init_wc = config["init_wc"] # this is the initial water content of the soil 
+        self.CROP_PRICE=config["crop_price"] # this is the price of the crop 
+        self.IRRIGATION_COST=config["irrigation_cost"] # this is the cost of irrigation 
+        self.FIXED_COST = config["fixed_cost"] # this is the fixed cost of irrigation per year 
+        self.planting_month = int(config['planting_date'].split('/')[0]) # this is the month of planting 
+        self.planting_day = int(config['planting_date'].split('/')[1]) # this is the day of planting 
+        self.max_irr_season=config['max_irr_season'] # this is the maximum irrigation application for the season 
+        self.simcalyear=config["simcalyear"] # this is the year of simulation passed into the AquaModel 
+        self.observation_set=config["observation_set"] # this is the choice of state definition 
+        self.forecast_lead_time=config["forecast_lead_time"] # if we are using weather forecast, this is the number of days ahead 
+        self.split = self.year2 # this is the split year between training and testing data 
 
-        # randomly drawn weather year 
+        # we randomly drawn weather year for simulation 
         self.chosen = np.random.choice([i for i in range(self.year1,self.year2+1)])
 
         # crop and soil choice 
         self.crop = Crop(config['crop'], planting_date=config['planting_date']) 
         self.soil = Soil(config['soil']) 
 
+        # we record the best profit, yield, and water use for each year 
         self.best_profit = np.ones(self.year2-self.year1+1) * (-500) 
         self.best_yield = np.ones(self.year2-self.year1+1) * (-1) 
         self.best_water = np.ones(self.year2-self.year1+1) * (1000) 
 
+        # the number of trajectories completed 
         self.tsteps=0 
 
         # obsservation and action sets 
+        # since each state definition is different, we need to define the observation space for each case 
         if self.observation_set == 'default':
             self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(18,), dtype=np.float32) 
         elif self.observation_set == 'forecast': 
@@ -75,22 +76,27 @@ class CropEnv(gym.Env):
         elif self.observation_set == 'temperature':
             self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(20,), dtype=np.float32) 
         elif self.observation_set == 'no eto':
-            self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(17,), dtype=np.float32) 
+            self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(15,), dtype=np.float32) 
         
+        # the action space is continuous with dimension 4 
         self.action_space = spaces.Box(low=-1., high=1., shape=(4,), dtype=np.float32)  
 
+        # we record the training curve, yield curve, and water curve, for later access after training 
         self.train_curve = [] 
         self.yield_curve = []    
         self.water_curve = [] 
         self.yields = [] 
 
-        self.reward_scale = config['reward_scale'] # (yield scale, water scale) 
+        # this is the weight of the reward for yield and water use 
+        self.reward_scale = config['reward_scale'] # (yield scale weight, water scale weight) 
 
                 
     def states(self):
+        # return observation space 
         return dict(type='float', shape=(self.observation_space.shape[0],))
  
     def actions(self):
+        # return action space 
         return dict(type='float', num_values=self.action_space.shape[0])
         
     def reset(self):
@@ -98,24 +104,24 @@ class CropEnv(gym.Env):
         re-initialize model and return first observation
         """ 
         
-        # choose a random training year to simulate each time we reset 
-        sim_year=int(np.random.choice(np.arange(self.year1,self.year2+1)))
+        # choose a random training year to simulate each time we reset the environment 
+        sim_year=int(np.random.choice(np.arange(self.year1,self.year2+1))) 
+        # get the weather data for that year 
         self.wdf = self.gendf[self.gendf.simyear==sim_year].drop('simyear',axis=1)
+        # record our choice 
         self.chosen=sim_year*1 
 
         # irrigation cap
         self.chosen_max_irr_season =self.max_irr_season*1.
             
-        # create and initialize model
-        month = self.planting_month
-        day=self.planting_day
-        
-        self.model = AquaCropModel(f'{self.simcalyear}/{month}/{day}',f'{self.simcalyear}/12/31',
-                                self.wdf,self.soil,self.crop,
-                                irrigation_management=IrrMngtClass(irrigation_method=5,MaxIrrSeason=self.chosen_max_irr_season),
-                                initial_water_content=self.init_wc
-                                )
-        self.model._initialize()
+        # create the simulation model of plantation 
+        self.model = AquaCropModel(
+            f'{self.simcalyear}/{self.planting_month}/{self.planting_day}',f'{self.simcalyear}/12/31',
+            self.wdf,self.soil,self.crop,
+            irrigation_management=IrrMngtClass(irrigation_method=5,MaxIrrSeason=self.chosen_max_irr_season),
+            initial_water_content=self.init_wc
+        )
+        self.model._initialize() # initialize our simulation model 
 
 
         # shift the start day of simulation by specified amound
