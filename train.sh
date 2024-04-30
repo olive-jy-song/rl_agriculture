@@ -223,4 +223,101 @@ python train.py \
     --train_steps 200000 \
     --fig_dir ./nebraska_trpo_temp \
     --plot_train_curve \
-    --evaluate  
+    --evaluate 
+
+# SAC on Nebraska Maize 
+python train.py \
+    --model_type SAC \
+    --config_name nebraska_maize_base \
+    --save_dir nebraska_250 \
+    --train_steps 250000 \
+    --fig_dir ./nebraska_sac_250 \
+    --plot_train_curve \
+    --evaluate 
+
+# DDPG on Nebraska Maize 
+python train.py \
+    --model_type DDPG \
+    --config_name nebraska_maize_base \
+    --save_dir nebraska_250 \
+    --train_steps 250000 \
+    --fig_dir ./nebraska_ddpg_250 \
+    --plot_train_curve \
+    --evaluate
+
+#PPO with water_content=0
+python train.py \
+    --model_type PPO \
+    --config_name nebraska_maize_water0 \
+    --save_dir nebraska_250_water0 \
+    --train_steps 250000 \
+    --fig_dir ./nebraska_ppo_250_water0 \
+    --n_steps 18 \
+    --plot_train_curve \
+    --evaluate
+
+#PPO with water_content=50
+python train.py \
+    --model_type PPO \
+    --config_name nebraska_maize_water50 \
+    --save_dir nebraska_250_water50 \
+    --train_steps 250000 \
+    --fig_dir ./nebraska_ppo_250_water50 \
+    --n_steps 18 \
+    --plot_train_curve \
+    --evaluate
+
+#PPO with water_content=100
+python train.py \
+    --model_type PPO \
+    --config_name nebraska_maize_water100 \
+    --save_dir nebraska_250_water100 \
+    --train_steps 250000 \
+    --fig_dir ./nebraska_ppo_250_water100 \
+    --n_steps 18 \
+    --plot_train_curve \
+    --evaluate
+
+#PPO with wheat
+python train.py \
+    --model_type PPO \
+    --config_name nebraska_wheat_base \
+    --save_dir nebraska_250_wheat \
+    --train_steps 250000 \
+    --fig_dir ./nebraska_ppo_250_wheat \
+    --n_steps 18 \
+    --plot_train_curve \
+    --evaluate
+
+#PPO with soybean
+python train.py \
+    --model_type PPO \
+    --config_name nebraska_soybean_base \
+    --save_dir nebraska_250_soybean \
+    --train_steps 250000 \
+    --fig_dir ./nebraska_ppo_250_soybean \
+    --n_steps 18 \
+    --plot_train_curve \
+    --evaluate
+
+#TRPO with wheat
+python train.py \
+    --model_type TRPO \
+    --config_name nebraska_wheat_base \
+    --save_dir nebraska_250_wheat \
+    --train_steps 250000 \
+    --fig_dir ./nebraska_trpo_250_wheat \
+    --n_steps 18 \
+    --plot_train_curve \
+    --evaluate
+
+#TRPO with soybean
+python train.py \
+    --model_type TRPO \
+    --config_name nebraska_soybean_base \
+    --save_dir nebraska_250_soybean \
+    --train_steps 250000 \
+    --fig_dir ./nebraska_trpo_250_soybean \
+    --n_steps 18 \
+    --plot_train_curve \
+    --evaluate 

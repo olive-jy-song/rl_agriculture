@@ -29,7 +29,12 @@ configs = {
     'nebraska_maize_best': nebraska_best, 
     'nebraska_maize_maxtemp': nebraska_maxtemp_config, 
     'nebraska_maize_scale3': nebraska_scale3_config, 
-    'nebraska_maize_noeto': nebraska_noeto_config
+    'nebraska_maize_noeto': nebraska_noeto_config,
+    'nebraska_wheat_base': nebraska_wheat_config,
+    'nebraska_soybean_base': nebraska_soybean_config,
+    'nebraska_maize_water0': nebraska_water0_config,
+    'nebraska_maize_water50': nebraska_water50_config,
+    'nebraska_maize_water100': nebraska_water100_config 
 } 
 
 models = { 
