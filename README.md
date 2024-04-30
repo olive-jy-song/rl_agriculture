@@ -48,7 +48,7 @@ In general, we start from a default configuration, called `'nebraska_maize_base'
 * Different initial soil moisture: `'nebraska_maize_water0'`, `'nebraska_maize_water50'`, `'nebraska_maize_water100'` 
 
 ##### README on Code Scripts 
-All of our code is organized as Python scripts, including `train.py`, `env.py`, `evaluate`, `train_with_checkpoint.py`, `utils.py`, `eto.py`. 
+All of our code is organized as Python scripts, including `train.py`, `env.py`, `evaluate`, `train_with_checkpoint.py`, `utils.py`, `eto.py`, `config_analysis.py`. 
 
 * `env.py` is the main script for the environment. It includes the definition of our environment based on the AquaCrop package, wrapped around a gym environment. It defines the observations space and action space, and implements the `reset`, `step`, and other functions. 
 It can handle different observation sets that we define. 
@@ -56,3 +56,4 @@ It can handle different observation sets that we define.
  the reward function, the state definition, the action definition, etc. 
 * `train.py` is the main script for training the DRL agents. It includes the training loop. 
 
+* `config_analysis.py` creates bar-plots for the results of different configurations.
