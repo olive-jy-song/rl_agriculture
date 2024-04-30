@@ -1,5 +1,10 @@
 # rl_agriculture
 
+## Team ExplodingGrads
+Jiayuan Song, js10417@nyu.edu
+Weiyushi Tian, wt694@nyu.edu
+Zhenyao Gu, zg2187@nyu.edu
+
 ## Goal 
 In this project, we work on exploring the use of Deep Reinforcement Learning for Irrigation Scheduling in agriculture. In particular, we focus our experiments on planting Maize in the state of Nebraska, which is the major type of crop in the region. 
 
