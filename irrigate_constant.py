@@ -1,3 +1,7 @@
+'''
+This script runs the AquaCrop model for a range of constant irrigation amounts and reports the best mean yield. 
+'''
+
 import pandas as pd 
 from aquacrop import IrrigationManagement 
 from aquacrop import InitialWaterContent, Crop, Soil, AquaCropModel 
