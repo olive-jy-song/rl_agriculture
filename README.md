@@ -18,7 +18,7 @@ Reward: Since we'd like to maximize the maize yield with respect to minimal wate
 ## README on Trained Models & Configurations 
 In total, we trained 30 DRL agents using the code in this repository. Our experiments spanned in various dimensions, including configuration optimizations, different DRL methods, different weather conditions, and different crops. We are including all the configurations and the trained models in this directory. The detailed explanations are as below. 
 
-Copies of our trained model are kept under `/.saved_model`, where there are 1-2 trained models included under each subdirectory. If the name of the model directories are unfortunately not self-explanatory enough, the training scripts of the models are included in the `train.sh` bash script, in which you can find the detailed command of training the models. 
+Copies of our trained model are kept under `/saved_model`, where there are 1-2 trained models included under each subdirectory. If the name of the model directories are unfortunately not self-explanatory enough, the training scripts of the models are included in the `train.sh` bash script, in which you can find the detailed command of training the models. 
 
 *Configurations* are how we control and document the parameter of our environment. For example, there is a argument called `max_irr_season` in configurations, which is the cap water we can irrigate in the whole season. We write and record different configurations for all our experiments, so that the parameters are well-documented. The configurations are detailed in `configs.py`, in which you can find how we exactly set the parameters for our experiments; if you'd like a quicker look over all the configurations, they are listed in a dictionary in `utils.py`. 
 

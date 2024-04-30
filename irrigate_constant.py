@@ -15,12 +15,14 @@ dates = df[df['simyear']==1]['Date']
 
 best_mean_yields = 0 
 
+# Run the model for a range of constant irrigation amounts 
 for irr_amount in range(10, 100, 10):  
     print(f'Running for {irr_amount} mm') 
      
     durations = [] 
     yields = [] 
 
+    # Run the model for each year 
     for year in range(700, 1000):
         simyear = year + 1 
         weather_df = config['gendf'][config['gendf']['simyear'] == simyear].drop('simyear',axis=1) 
@@ -47,10 +49,12 @@ for irr_amount in range(10, 100, 10):
         ) 
 
         model.run_model(till_termination=True) 
-        print(model._outputs.final_stats) 
+
+        # Record the duration and yield 
         durations.append(float(model._outputs.final_stats['Harvest Date (Step)'].iloc[0])) 
         yields.append(float(model._outputs.final_stats['Yield potential (tonne/ha)'].iloc[0])) 
 
+    # Report the mean yield 
     best_mean_yields = max(best_mean_yields, np.mean(yields)) 
 
 print(f'Best mean yield for constant irrigation: {best_mean_yields}')  
