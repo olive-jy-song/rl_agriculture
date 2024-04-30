@@ -72,7 +72,7 @@ in which `--n_steps` is only for on-policy algorithms, `--train_steps` is the to
 * `evaluate.py` is the main script for evaluating the DRL agents. We evaluate the agents by running the trained model on the test data, and calculate the average profit, yield and water use. In addition, we support selecting a random test year and visualize the exact irrigation strategy throughout that year. An example command for running the evaluate function is: 
 ``` 
 python evaluate.py \
-    --model_path .saved_model/nebraska_1day/ppo_434.595\
+    --model_path saved_model/nebraska_1day/ppo_434.595\
     --model_type PPO \
     --config_name nebraska_maize_1day \
     --fig_dir ./nebraska_1day \
