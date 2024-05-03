@@ -65,6 +65,9 @@ def main(args):
         plot_checkpoints(profit_overall, args.save_dir, 'profit') 
         plot_checkpoints(yield_overall, args.save_dir, 'yield') 
         plot_checkpoints(water_overall, args.save_dir, 'water')   
+        print(profit_overall) 
+        print(yield_overall)
+        print(water_overall) 
 
         
 if __name__ == '__main__':
