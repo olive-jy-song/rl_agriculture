@@ -31,14 +31,15 @@ def main(args):
     profit_overall = []
     yield_overall = []
     water_overall = [] 
-    for i in range(args.n_checkpoints): 
 
-        # our agent, with pass in model_type 
-        model = models[args.model_type]('MlpPolicy', env, n_steps=args.n_steps) if args.n_steps is not None \
-            else models[args.model_type]('MlpPolicy', env) 
+            # our agent, with pass in model_type 
+    model = models[args.model_type]('MlpPolicy', env, n_steps=args.n_steps) if args.n_steps is not None \
+        else models[args.model_type]('MlpPolicy', env) 
+    
+    for i in range(args.n_checkpoints): 
         
-        if i > 0: # load the previous model 
-            model.load(f".saved_model/{args.save_dir}/{args.model_type.lower()}_{i-1}") 
+        # if i > 0: # load the previous model 
+        #     model.load(f".saved_model/{args.save_dir}/{args.model_type.lower()}_{i-1}") 
         model.learn(total_timesteps=check_step, progress_bar=True) 
 
         # to lower case 

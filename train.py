@@ -35,6 +35,13 @@ def main(args):
         os.makedirs(f'.saved_model/{args.save_dir}') 
     model.save(f".saved_model/{args.save_dir}/{args.model_type.lower()}_{np.round(train_curve[-1],3)}") 
 
+    # write to file 
+    with open(f'.saved_model/{args.save_dir}/{args.model_type.lower()}_{np.round(train_curve[-1],3)}.txt', 'w') as f: 
+        f.write(f'Training Curve: {train_curve}\n') 
+        f.write(f'Yield Curve: {yield_curve}\n') 
+        f.write(f'Water Curve: {water_curve}\n') 
+        f.write(f'Yield Points: {yield_points}\n') 
+
     # plot the training curve 
     if args.plot_train_curve: 
         plot_train_curve(train_curve, args.fig_dir, 'train') 
